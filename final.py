@@ -130,8 +130,8 @@ class DataPreprocessor(object):
         return df
 
     def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['BinSmoker'] = df['Smoker'].replace({'Yes': True, 'No': False})
-        df['BinDrinker'] = df['Drinker'].replace({'Yes': True, 'No': False})
+        df['Bin_Smoker'] = df['Smoker'].replace({'Yes': True, 'No': False})
+        df['Bin_Drinker'] = df['Drinker'].replace({'Yes': True, 'No': False})
         return df
 
     def ordinal_converter(self, df: pd.DataFrame, col: str, ctgs: list[str]) -> pd.DataFrame:
