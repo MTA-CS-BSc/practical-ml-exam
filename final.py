@@ -3,8 +3,8 @@
 ################################
 
 ################################
-# Student ID:
-# First and Last Names:
+# Student ID: 209372325
+# First and Last Names: Maya Raskin
 ################################
 
 # In this exercise you should implement a classification pipeline which aims at predicting the amount of hours
