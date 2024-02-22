@@ -80,6 +80,31 @@ class DataPreprocessor(object):
     def __init__(self):
         self.transformer = None
 
+    def display_top_10_rows(self, df: pd.DataFrame):
+        print('Top 10 rows:')
+        print(df.head(10))
+
+    def fill_zero_reason_with_nan(self, df: pd.DataFrame):
+        df['Reason'].replace(to_replace=0, value=np.nan, inplace=True)
+
+    def where_are_the_nans(self, df: pd.DataFrame):
+        cols_with_nan_values: pd.Series = df.isna().sum().loc[lambda x: x > 0]
+        print("Columns with at least one Nan value:")
+        print(cols_with_nan_values)
+
+    def numeric_correlations(self, df: pd.DataFrame, n: int):
+        ordinal_mapping = {'Low': 1, 'Medium': 2, 'High': 3, 'Very High': 4}
+        df['TimeOffNumeric'] = df['TimeOff'].replace(ordinal_mapping)
+
+        corr = df.select_dtypes(include=['number']).corr()
+        time_off_correlations = corr['TimeOffNumeric'].drop('TimeOffNumeric')
+
+        important_feats = time_off_correlations.abs().nlargest(n)
+        important_corrs = time_off_correlations[important_feats.index]
+
+        print(f"The {n} numeric columns with the highest correlation with the target column:")
+        print(important_corrs)
+
     def fit(self, dataset_df: pd.DataFrame):
         """
         Input:
@@ -96,12 +121,17 @@ class DataPreprocessor(object):
 
         """
 
+        self.display_top_10_rows(dataset_df)
+        self.fill_zero_reason_with_nan(dataset_df)
+        self.where_are_the_nans(dataset_df)
+        self.numeric_correlations(dataset_df, n=10)
+
     def transform(self, df: pd.DataFrame):
         """
         Input:
         df:  *any* data similarly structured to the train data (dataset_df input of "fit")
 
-        Output: 
+        Output:
         A processed dataframe or ndarray containing only the input features (X).
         It should maintain the same row order as the input.
         Note that the labels vector (y) should not exist in the returned ndarray object or dataframe.
@@ -145,25 +175,26 @@ if __name__ == '__main__':
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
 
-    x_train = train_dataset_df.iloc[:, :-1]
+    # x_train = train_dataset_df.iloc[:, :-1]
+    x_train = train_dataset_df
     y_train = train_dataset_df['TimeOff']
-    preprocessor.fit(x_train, y_train)
-    model = train_model(preprocessor.transform(x_train), y_train)
-
-    ### Evaluation Section ####
-    test_csv_path = 'time_off_data_train.csv'
-    # Obviously, this will be different during evaluation. For now, you can keep it to validate proper execution
-    test_csv_path = train_csv_path
-    test_dataset_df = load_dataset(test_csv_path)
-
-    X_test = test_dataset_df.iloc[:, :-1]
-    y_test = test_dataset_df['TimeOff']
-
-    processed_X_test = preprocessor.transform(X_test)
-    predictions = model.predict(processed_X_test)
-    test_score = accuracy_score(y_test, predictions)
-    print("Accuracy on test:", test_score)
-
-    predictions = model.predict(preprocessor.transform(x_train))
-    train_score = accuracy_score(y_train, predictions)
-    print('Accuracy on train:', train_score)
+    preprocessor.fit(x_train)
+    # model = train_model(preprocessor.transform(x_train), y_train)
+    #
+    # ### Evaluation Section ####
+    # test_csv_path = 'time_off_data_train.csv'
+    # # Obviously, this will be different during evaluation. For now, you can keep it to validate proper execution
+    # test_csv_path = train_csv_path
+    # test_dataset_df = load_dataset(test_csv_path)
+    #
+    # X_test = test_dataset_df.iloc[:, :-1]
+    # y_test = test_dataset_df['TimeOff']
+    #
+    # processed_X_test = preprocessor.transform(X_test)
+    # predictions = model.predict(processed_X_test)
+    # test_score = accuracy_score(y_test, predictions)
+    # print("Accuracy on test:", test_score)
+    #
+    # predictions = model.predict(preprocessor.transform(x_train))
+    # train_score = accuracy_score(y_train, predictions)
+    # print('Accuracy on train:', train_score)
