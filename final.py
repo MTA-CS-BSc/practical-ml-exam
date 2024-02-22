@@ -124,8 +124,6 @@ class DataPreprocessor(object):
         self.display_top_10_rows(dataset_df)
         self.where_are_the_nans(dataset_df)
         self.numeric_correlations(dataset_df, n=10)
-        self.convert_education_to_ordinal(dataset_df)
-        self.convert_age_group_to_ordinal(dataset_df)
 
     def drop_non_informative_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.drop(columns=['ID'])
