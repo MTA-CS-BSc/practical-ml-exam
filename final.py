@@ -138,6 +138,11 @@ class DataPreprocessor(object):
         df['Age Group'].replace(categories, inplace=True)
         return df
 
+    def convert_education_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
+        categories = { 'High school': 1, 'Graduate': 2, 'Postgraduate': 3, 'Phd': 4 }
+        df['Education'].replace(categories, inplace=True)
+        return df
+
     def transform(self, df: pd.DataFrame):
         """
         Input:
@@ -168,6 +173,9 @@ class DataPreprocessor(object):
 
         # Convert age group to ordinal
         df = self.convert_age_group_to_ordinal(df)
+
+        # Convert education to ordinal
+        df = self.convert_education_to_ordinal(df)
 
         return df
 
