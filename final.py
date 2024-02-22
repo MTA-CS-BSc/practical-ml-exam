@@ -80,14 +80,14 @@ class DataPreprocessor(object):
     def __init__(self):
         self.transformer = None
 
-    def display_top_10_rows(self, df: pd.DataFrame):
+    def display_top_10_rows(self, df: pd.DataFrame) -> None:
         print('Top 10 rows:')
         print(df.head(10))
 
-    def fill_zero_reason_with_nan(self, df: pd.DataFrame):
+    def fill_zero_reason_with_nan(self, df: pd.DataFrame) -> None:
         df['Reason'].replace(to_replace=0, value=np.nan, inplace=True)
 
-    def where_are_the_nans(self, df: pd.DataFrame):
+    def where_are_the_nans(self, df: pd.DataFrame) -> None:
         cols_with_nan_values: pd.Series = df.isna().sum().loc[lambda x: x > 0]
         print("Columns with at least one Nan value:")
         print(cols_with_nan_values)
@@ -105,7 +105,7 @@ class DataPreprocessor(object):
         print(f"The {n} numeric columns with the highest correlation with the target column:")
         print(important_corrs)
 
-    def fit(self, dataset_df: pd.DataFrame):
+    def fit(self, dataset_df: pd.DataFrame) -> None:
         """
         Input:
         dataset_df: the training data loaded from the csv file as a dataframe containing only the features
