@@ -124,6 +124,7 @@ class DataPreprocessor(object):
         self.display_top_10_rows(dataset_df)
         self.where_are_the_nans(dataset_df)
         self.numeric_correlations(dataset_df, n=10)
+        self.convert_age_group_to_ordinal(dataset_df)
 
     def drop_non_informative_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.drop(columns=['ID'])
@@ -134,13 +135,21 @@ class DataPreprocessor(object):
         return df
 
     def convert_age_group_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
-        categories = { 'Young Adult': 1, 'Adult': 2, 'Middle Aged': 3, 'Senior': 4 }
-        df['Age Group'].replace(categories, inplace=True)
+        ctgs = ['Young Adult', 'Adult', 'Middle Aged', 'Senior']
+        enc = OrdinalEncoder(categories=[ctgs], handle_unknown='use_encoded_value', unknown_value=np.nan)
+        df['AgeGroupNumeric'] = enc.fit_transform(df[['Age Group']])
+
+        df.drop(columns='Age Group', inplace=True)
+
         return df
 
     def convert_education_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
-        categories = { 'High school': 1, 'Graduate': 2, 'Postgraduate': 3, 'Phd': 4 }
-        df['Education'].replace(categories, inplace=True)
+        ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
+        enc = OrdinalEncoder(categories=[ctgs], handle_unknown='use_encoded_value', unknown_value=np.nan)
+        df['EducationNumeric'] = enc.fit_transform(df[['Education']])
+
+        df.drop(columns='Education', inplace=True)
+
         return df
 
     def transform(self, df: pd.DataFrame):
