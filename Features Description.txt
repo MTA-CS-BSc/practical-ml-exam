@@ -1,7 +1,8 @@
 Features Description:
 
-* Individual identification (ID)
-* Reason (of absence).
+* Individual identification (ID) - Dropped
+
+* Reason (of absence) - #TODO How to encode.
 Absences attested by the International Code of Diseases (ICD) stratified into 21 categories (I to XXI) as follows:
 
 I Certain infectious and parasitic diseases  
@@ -27,18 +28,18 @@ XX External causes of morbidity and mortality
 XXI Factors influencing health status and contact with health services.
 And 7 categories without (CID) patient follow-up (22), medical consultation (23), blood donation (24), laboratory examination (25), unjustified absence (26), physiotherapy (27), dental consultation (28).
 
-* Month (of absence)
-* Day of the week (Monday (2), Tuesday (3), Wednesday (4), Thursday (5), Friday (6))
-* Season
-* Transportation expense
-* Residence Distance (Miles)
-* Service time (seniority at work)
-* Age Group
-* Education
-* Son (number of children)
-* Smoker
-* Drinker
-* Pet (number of pet)
-* Weight
-* Height
+* Month (of absence) -> #TODO
+* Day of the week (Monday (2), Tuesday (3), Wednesday (4), Thursday (5), Friday (6)) -> #TODO
+* Season -> #TODO
+* Transportation expense -> Numeric
+* Residence Distance (Miles) -> Numeric
+* Service time (seniority at work) -> Numeric
+* Age Group -> Ordinal Numeric
+* Education - #TODO
+* Son (number of children) -> Numeric
+* Smoker -> Converted to numeric
+* Drinker -> Converted to numeric
+* Pet (number of pet) -> Numeric
+* Weight -> Dropped, added BMI
+* Height -> Dropped, added BMI
 * TimeOff(target)

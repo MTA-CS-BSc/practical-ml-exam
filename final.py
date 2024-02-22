@@ -47,7 +47,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 
 
 def load_dataset(train_csv_path: str):
@@ -122,9 +122,21 @@ class DataPreprocessor(object):
         """
 
         self.display_top_10_rows(dataset_df)
-        self.fill_zero_reason_with_nan(dataset_df)
         self.where_are_the_nans(dataset_df)
         self.numeric_correlations(dataset_df, n=10)
+
+    def drop_non_informative_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        return df.drop(columns=['ID'])
+
+    def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
+        df['Smoker'].replace({'Yes': True, 'No': False}, inplace=True)
+        df['Drinker'].replace({'Yes': True, 'No': False}, inplace=True)
+        return df
+
+    def convert_age_group_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
+        categories = { 'Young Adult': 1, 'Adult': 2, 'Middle Aged': 3, 'Senior': 4 }
+        df['Age Group'].replace(categories, inplace=True)
+        return df
 
     def transform(self, df: pd.DataFrame):
         """
@@ -142,10 +154,20 @@ class DataPreprocessor(object):
 
         """
 
+        # Fill N/A Smoker values
         df['Smoker'].fillna('Yes')
 
-        # df["BMI"]=df[16]/df[17]^2
-        # think about if you would like to add additional computed columns.
+        # Introduce new column to drop Weight and Height
+        df['BMI'] = df['Weight'] / pow(df['Height'], 2)
+
+        # Get rid of non informative columns
+        df = self.drop_non_informative_columns(df)
+
+        # Convert Yes/No to True/False
+        df = self.convert_textual_binary_to_boolean(df)
+
+        # Convert age group to ordinal
+        df = self.convert_age_group_to_ordinal(df)
 
         return df
 
