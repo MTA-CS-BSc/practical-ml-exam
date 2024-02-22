@@ -35,7 +35,7 @@ And 7 categories without (CID) patient follow-up (22), medical consultation (23)
 * Residence Distance (Miles) -> Numeric
 * Service time (seniority at work) -> Numeric
 * Age Group -> Ordinal Numeric
-* Education - #TODO
+* Education -> Ordinal Numeric
 * Son (number of children) -> Numeric
 * Smoker -> Converted to numeric
 * Drinker -> Converted to numeric
