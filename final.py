@@ -41,23 +41,21 @@
 # ex4_FirstName_LastName.py
 
 
-
 import numpy as np
 from sklearn.compose import ColumnTransformer
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
-def load_dataset(train_csv_path):
-    data = pd.read_csv(train_csv_path, sep=',')
-    return data
+def load_dataset(train_csv_path: str):
+    return pd.read_csv(train_csv_path, sep=',')
 
 
 class DataPreprocessor(object):
-
-    """ 
+    """
     This class is a mandatory API.
 
     The purpose of this class is to unify data preprocessing step between the training and the testing stages. 
@@ -80,10 +78,9 @@ class DataPreprocessor(object):
     """
 
     def __init__(self):
-      self.transformer = None
+        self.transformer = None
 
-    def fit(self, dataset_df):
-
+    def fit(self, dataset_df: pd.DataFrame):
         """
         Input:
         dataset_df: the training data loaded from the csv file as a dataframe containing only the features
@@ -99,9 +96,7 @@ class DataPreprocessor(object):
 
         """
 
-
-    def transform(self, df):
-
+    def transform(self, df: pd.DataFrame):
         """
         Input:
         df:  *any* data similarly structured to the train data (dataset_df input of "fit")
@@ -119,13 +114,13 @@ class DataPreprocessor(object):
 
         df['Smoker'].fillna('Yes')
 
-        df["BMI"]=df[16]/df[17]^2
+        # df["BMI"]=df[16]/df[17]^2
         # think about if you would like to add additional computed columns.
 
         return df
 
 
-def train_model(processed_X, y):
+def train_model(processed_x: pd.DataFrame, y: list[str]):
     """
     This function gets the data after the pre-processing stage  - after running DataPreprocessor.transform on it, 
     a vector of labels, and returns a trained model. 
@@ -140,7 +135,7 @@ def train_model(processed_X, y):
 
     """
     model = RandomForestClassifier()
-    model.fit(processed_X, y)
+    model.fit(processed_x, y)
 
     return model
 
@@ -150,10 +145,10 @@ if __name__ == '__main__':
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
 
-    X_train = train_dataset_df.iloc[:, :-1]
+    x_train = train_dataset_df.iloc[:, :-1]
     y_train = train_dataset_df['TimeOff']
-    preprocessor.fit(X_train, y_train)
-    model = train_model(preprocessor.transform(X_train), y_train)
+    preprocessor.fit(x_train, y_train)
+    model = train_model(preprocessor.transform(x_train), y_train)
 
     ### Evaluation Section ####
     test_csv_path = 'time_off_data_train.csv'
@@ -169,6 +164,6 @@ if __name__ == '__main__':
     test_score = accuracy_score(y_test, predictions)
     print("Accuracy on test:", test_score)
 
-    predictions = model.predict(preprocessor.transform(X_train))
+    predictions = model.predict(preprocessor.transform(x_train))
     train_score = accuracy_score(y_train, predictions)
     print('Accuracy on train:', train_score)
