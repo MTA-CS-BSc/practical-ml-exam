@@ -130,8 +130,8 @@ class DataPreprocessor(object):
         return df
 
     def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['Smoker'].replace({'Yes': True, 'No': False}, inplace=True)
-        df['Drinker'].replace({'Yes': True, 'No': False}, inplace=True)
+        df['BinSmoker'] = df['Smoker'].replace({'Yes': True, 'No': False})
+        df['BinDrinker'] = df['Drinker'].replace({'Yes': True, 'No': False})
         return df
 
     def ordinal_converter(self, df: pd.DataFrame, col: str, ctgs: list[str]) -> pd.DataFrame:
@@ -149,6 +149,42 @@ class DataPreprocessor(object):
         ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
         return self.ordinal_converter(df, col='Education', ctgs=ctgs)
 
+    def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Fill residence distance with mean value
+        df['Residence Distance'].fillna(df['Residence Distance'].mean(), inplace=True)
+
+        # Fill service time with mean value
+        df['Service time'].fillna(df['Service time'].mean(), inplace=True)
+
+        # TODO: Should be changed?
+        df['Age_Group_Numeric'].fillna(df['Age_Group_Numeric'].value_counts().idxmax(), inplace=True)
+        young_adults_indices = df['Age_Group_Numeric'] == 1
+
+        # Fill Education
+        df.loc[young_adults_indices, 'Education_Numeric'].fillna(1, inplace=True)
+        df.loc[~young_adults_indices, 'Education_Numeric'].fillna(df['Education_Numeric'].value_counts().idxmax(), inplace=True)
+
+        # Fill Son
+        df.loc[young_adults_indices, 'Son'].fillna(0, inplace=True)
+        df.loc[~young_adults_indices, 'Son'].fillna(df['Son'].value_counts().idxmax(), inplace=True)
+
+        # Fill Smoker
+        df['Smoker'].fillna('Yes', inplace=True)
+
+        # Fill Pet
+        df['Pet'].fillna(df['Pet'].value_counts().idxmax(), inplace=True)
+
+        # Fill Season
+        month_to_season = {
+            1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 1
+        }
+        df['Season'].fillna(df['Month'].map(month_to_season))
+
+        # Fill Drinker
+        df['Drinker'].fillna(df['Drinker'].value_counts().idxmax(), inplace=True)
+
+        return df
+
     def transform(self, df: pd.DataFrame):
         """
         Input:
@@ -165,11 +201,8 @@ class DataPreprocessor(object):
 
         """
 
-        # Fill N/A Smoker values
-        df['Smoker'].fillna('Yes')
-
         # Introduce new column to drop Weight and Height
-        df['BMI'] = df['Weight'] / pow(df['Height'], 2)
+        # df['BMI'] = df['Weight'] / pow(df['Height'], 2)
 
         # Get rid of non informative columns
         df = self.drop_non_informative_columns(df)
@@ -182,6 +215,9 @@ class DataPreprocessor(object):
 
         # Convert education to ordinal
         df = self.convert_education_to_ordinal(df)
+
+        # Fill N/A values
+        df = self.fill_na(df)
 
         return df
 
