@@ -125,8 +125,9 @@ class DataPreprocessor(object):
         self.where_are_the_nans(dataset_df)
         self.numeric_correlations(dataset_df, n=10)
 
+    # TODO: Check which cols are irrelevant
     def drop_non_informative_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.drop(columns=['ID'])
+        return df
 
     def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
         df['Smoker'].replace({'Yes': True, 'No': False}, inplace=True)
