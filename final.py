@@ -47,7 +47,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, LabelEncoder
 
 
 def load_dataset(train_csv_path: str):
@@ -123,15 +123,19 @@ class DataPreprocessor(object):
 
         self.display_top_10_rows(dataset_df)
         self.where_are_the_nans(dataset_df)
-        self.numeric_correlations(dataset_df, n=10)
-
-    # TODO: Check which cols are irrelevant
-    def drop_non_informative_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df
 
     def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['Bin_Smoker'] = df['Smoker'].replace({'Yes': True, 'No': False})
-        df['Bin_Drinker'] = df['Drinker'].replace({'Yes': True, 'No': False})
+        # Prepare encoder
+        l_encoder = LabelEncoder()
+        l_encoder.fit(['Yes', 'No'])
+
+        # Transform columns
+        df['Bin_Smoker'] = l_encoder.transform(df['Smoker'])
+        df['Bin_Drinker'] = l_encoder.transform(df['Drinker'])
+
+        # Drop original columns
+        df.drop(columns=['Smoker', 'Drinker'], inplace=True)
+
         return df
 
     def ordinal_converter(self, df: pd.DataFrame, col: str, ctgs: list[str]) -> pd.DataFrame:
@@ -139,6 +143,7 @@ class DataPreprocessor(object):
         df[col.replace(' ', '_') + '_Numeric'] = enc.fit_transform(df[[col]])
 
         df.drop(columns=col, inplace=True)
+
         return df
 
     def convert_age_group_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -157,12 +162,12 @@ class DataPreprocessor(object):
         df['Service time'].fillna(df['Service time'].mean(), inplace=True)
 
         # TODO: Should be changed?
-        df['Age_Group_Numeric'].fillna(df['Age_Group_Numeric'].value_counts().idxmax(), inplace=True)
-        young_adults_indices = df['Age_Group_Numeric'] == 1
+        df['Age Group'].fillna(df['Age Group'].value_counts().idxmax(), inplace=True)
+        young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education
-        df.loc[young_adults_indices, 'Education_Numeric'].fillna(1, inplace=True)
-        df.loc[~young_adults_indices, 'Education_Numeric'].fillna(df['Education_Numeric'].value_counts().idxmax(), inplace=True)
+        df.loc[young_adults_indices, 'Education'].fillna('High school', inplace=True)
+        df.loc[~young_adults_indices, 'Education'].fillna(df['Education'].value_counts().idxmax(), inplace=True)
 
         # Fill Son
         df.loc[young_adults_indices, 'Son'].fillna(0, inplace=True)
@@ -204,25 +209,24 @@ class DataPreprocessor(object):
         # Introduce new column to drop Weight and Height
         # df['BMI'] = df['Weight'] / pow(df['Height'], 2)
 
-        # Get rid of non informative columns
-        df = self.drop_non_informative_columns(df)
-
-        # Convert Yes/No to True/False
-        df = self.convert_textual_binary_to_boolean(df)
-
-        # Convert age group to ordinal
-        df = self.convert_age_group_to_ordinal(df)
-
-        # Convert education to ordinal
-        df = self.convert_education_to_ordinal(df)
+        c_df = df.copy()
 
         # Fill N/A values
-        df = self.fill_na(df)
+        c_df = self.fill_na(c_df)
 
-        return df
+        # Convert Yes/No to True/False
+        c_df = self.convert_textual_binary_to_boolean(c_df)
+
+        # Convert age group to ordinal
+        c_df = self.convert_age_group_to_ordinal(c_df)
+
+        # Convert education to ordinal
+        c_df = self.convert_education_to_ordinal(c_df)
+
+        return c_df
 
 
-def train_model(processed_x: pd.DataFrame, y: list[str]):
+def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
     """
     This function gets the data after the pre-processing stage  - after running DataPreprocessor.transform on it, 
     a vector of labels, and returns a trained model. 
@@ -247,26 +251,25 @@ if __name__ == '__main__':
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
 
-    # x_train = train_dataset_df.iloc[:, :-1]
-    x_train = train_dataset_df
+    x_train = train_dataset_df.iloc[:, :-1]
     y_train = train_dataset_df['TimeOff']
     preprocessor.fit(x_train)
-    # model = train_model(preprocessor.transform(x_train), y_train)
-    #
-    # ### Evaluation Section ####
-    # test_csv_path = 'time_off_data_train.csv'
-    # # Obviously, this will be different during evaluation. For now, you can keep it to validate proper execution
-    # test_csv_path = train_csv_path
-    # test_dataset_df = load_dataset(test_csv_path)
-    #
-    # X_test = test_dataset_df.iloc[:, :-1]
-    # y_test = test_dataset_df['TimeOff']
-    #
-    # processed_X_test = preprocessor.transform(X_test)
-    # predictions = model.predict(processed_X_test)
-    # test_score = accuracy_score(y_test, predictions)
-    # print("Accuracy on test:", test_score)
-    #
-    # predictions = model.predict(preprocessor.transform(x_train))
-    # train_score = accuracy_score(y_train, predictions)
-    # print('Accuracy on train:', train_score)
+    model = train_model(preprocessor.transform(x_train), y_train)
+
+    ### Evaluation Section ####
+    test_csv_path = 'time_off_data_train.csv'
+    # Obviously, this will be different during evaluation. For now, you can keep it to validate proper execution
+    test_csv_path = train_csv_path
+    test_dataset_df = load_dataset(test_csv_path)
+
+    x_test = test_dataset_df.iloc[:, :-1]
+    y_test = test_dataset_df['TimeOff']
+
+    processed_x_test = preprocessor.transform(x_test)
+    predictions = model.predict(processed_x_test)
+    test_score = accuracy_score(y_test, predictions)
+    print("Accuracy on test:", test_score)
+
+    predictions = model.predict(preprocessor.transform(x_train))
+    train_score = accuracy_score(y_train, predictions)
+    print('Accuracy on train:', train_score)
