@@ -140,6 +140,16 @@ class DataPreprocessor(object):
         ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
         return self.ordinal_converter(df, col='Education', ctgs=ctgs)
 
+    def fill_nan(self, group, col: str, fallback_value: any, inplace: bool):
+        non_null = group[col].notnull()
+
+        if non_null.any():
+            group[col] = group[col].fillna(method='ffill', inplace=inplace)
+        else:
+            group[col] = group[col].fillna(fallback_value, inplace=inplace)
+
+        return group
+
     def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
         # Fill Height whereas Weight exists
         df['Height'] = df.apply(lambda row: row['Weight'] + 100 if pd.notna(row['Weight']) else None, axis=1)
@@ -149,13 +159,13 @@ class DataPreprocessor(object):
         df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
 
         # Fill residence distance with mean value
-        df['Residence Distance'].fillna(df['Residence Distance'].mean(), inplace=True)
+        df.groupby('ID').apply(self.fill_nan, col='Residence Distance', fallback_value=df['Residence Distance'].mean(), inplace=True)
 
         # Fill service time with mean value
-        df['Service time'].fillna(df['Service time'].mean(), inplace=True)
+        df.groupby('ID').apply(self.fill_nan, col='Service time', fallback_value=df['Service time'].mean(), inplace=True)
 
         # Fill Age Group with most common
-        df['Age Group'].fillna(df['Age Group'].value_counts().idxmax(), inplace=True)
+        df.groupby('ID').apply(self.fill_nan, col='Age Group', fallback_value=df['Age Group'].value_counts().idxmax(), inplace=True)
         young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education with 'High school' for young adults, and most common for others
@@ -173,8 +183,13 @@ class DataPreprocessor(object):
         df['Pet'].fillna(df['Pet'].value_counts().idxmax(), inplace=True)
 
         # Fill Season according to month (there are no NaN values in the Month column)
+        # Summer - 1
+        # Winter - 2
+        # Spring - 3
+        # Fall - 4
+
         month_to_season = {
-            1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 1
+            1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 4, 10: 4, 11: 4, 12: 2
         }
         df['Season'].fillna(df['Month'].map(month_to_season), inplace=True)
 
