@@ -154,38 +154,52 @@ class DataPreprocessor(object):
         ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
         return self.ordinal_converter(df, col='Education', ctgs=ctgs)
 
+    def fill_weight_height(self, row):
+        if not pd.isnull(row['Weight']):
+            row['Height'] = row['Weight'] - 100
+        elif not pd.isnull(row['Height']):
+            row['Weight'] = row['Height'] + 100
+        return row
+
     def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Fill Height whereas Weight exists
+        df['Height'] = df.apply(lambda row: row['Weight'] + 100 if pd.notna(row['Weight']) else None, axis=1)
+
+        # Fill left NaNs left in Weight & Height with mean
+        df['Height'].fillna(df['Height'].mean(), inplace=True)
+        df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
+
         # Fill residence distance with mean value
         df['Residence Distance'].fillna(df['Residence Distance'].mean(), inplace=True)
 
         # Fill service time with mean value
         df['Service time'].fillna(df['Service time'].mean(), inplace=True)
 
-        # TODO: Should be changed?
+        # Fill Age Group with most common
         df['Age Group'].fillna(df['Age Group'].value_counts().idxmax(), inplace=True)
         young_adults_indices = df['Age Group'] == 'Young Adult'
 
-        # Fill Education
+        # Fill Education with 'High school' for young adults, and most common for others
         df.loc[young_adults_indices, 'Education'].fillna('High school', inplace=True)
         df.loc[~young_adults_indices, 'Education'].fillna(df['Education'].value_counts().idxmax(), inplace=True)
 
-        # Fill Son
+        # Fill Son with 0 for young adults, and most common for others
         df.loc[young_adults_indices, 'Son'].fillna(0, inplace=True)
         df.loc[~young_adults_indices, 'Son'].fillna(df['Son'].value_counts().idxmax(), inplace=True)
 
-        # Fill Smoker
+        # Fill Smoker with Yes
         df['Smoker'].fillna('Yes', inplace=True)
 
-        # Fill Pet
+        # Fill Pet with most common
         df['Pet'].fillna(df['Pet'].value_counts().idxmax(), inplace=True)
 
-        # Fill Season
+        # Fill Season according to month (there are no NaN values in the Month column)
         month_to_season = {
             1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 1
         }
         df['Season'].fillna(df['Month'].map(month_to_season))
 
-        # Fill Drinker
+        # Fill Drinker with most common
         df['Drinker'].fillna(df['Drinker'].value_counts().idxmax(), inplace=True)
 
         return df
@@ -206,13 +220,13 @@ class DataPreprocessor(object):
 
         """
 
-        # Introduce new column to drop Weight and Height
-        # df['BMI'] = df['Weight'] / pow(df['Height'], 2)
-
         c_df = df.copy()
 
         # Fill N/A values
         c_df = self.fill_na(c_df)
+
+        # Introduce new column to drop Weight and Height
+        c_df['BMI'] = c_df['Weight'] / pow(c_df['Height'], 2)
 
         # Convert Yes/No to True/False
         c_df = self.convert_textual_binary_to_boolean(c_df)
