@@ -85,26 +85,10 @@ class DataPreprocessor(object):
         print('Top 10 rows:')
         print(df.head(10))
 
-    def fill_zero_reason_with_nan(self, df: pd.DataFrame) -> None:
-        df['Reason'].replace(to_replace=0, value=np.nan, inplace=True)
-
     def where_are_the_nans(self, df: pd.DataFrame) -> None:
         cols_with_nan_values: pd.Series = df.isna().sum().loc[lambda x: x > 0]
         print("Columns with at least one Nan value:")
         print(cols_with_nan_values)
-
-    def numeric_correlations(self, df: pd.DataFrame, n: int):
-        ordinal_mapping = {'Low': 1, 'Medium': 2, 'High': 3, 'Very High': 4}
-        df['TimeOffNumeric'] = df['TimeOff'].replace(ordinal_mapping)
-
-        corr = df.select_dtypes(include=['number']).corr()
-        time_off_correlations = corr['TimeOffNumeric'].drop('TimeOffNumeric')
-
-        important_feats = time_off_correlations.abs().nlargest(n)
-        important_corrs = time_off_correlations[important_feats.index]
-
-        print(f"The {n} numeric columns with the highest correlation with the target column:")
-        print(important_corrs)
 
     def fit(self, dataset_df: pd.DataFrame) -> None:
         """
@@ -121,6 +105,7 @@ class DataPreprocessor(object):
         Handle the relevant columns and save the information needed to transform the fields in the instance state.
 
         """
+        dataset_df.info()
 
         self.display_top_10_rows(dataset_df)
         self.where_are_the_nans(dataset_df)
@@ -154,13 +139,6 @@ class DataPreprocessor(object):
     def convert_education_to_ordinal(self, df: pd.DataFrame) -> pd.DataFrame:
         ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
         return self.ordinal_converter(df, col='Education', ctgs=ctgs)
-
-    def fill_weight_height(self, row):
-        if not pd.isnull(row['Weight']):
-            row['Height'] = row['Weight'] - 100
-        elif not pd.isnull(row['Height']):
-            row['Weight'] = row['Height'] + 100
-        return row
 
     def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
         # Fill Height whereas Weight exists
