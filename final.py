@@ -197,7 +197,7 @@ class DataPreprocessor(object):
         month_to_season = {
             1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4, 12: 1
         }
-        df['Season'].fillna(df['Month'].map(month_to_season))
+        df['Season'].fillna(df['Month'].map(month_to_season), inplace=True)
 
         # Fill Drinker with most common
         df['Drinker'].fillna(df['Drinker'].value_counts().idxmax(), inplace=True)
