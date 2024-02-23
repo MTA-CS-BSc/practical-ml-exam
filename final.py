@@ -173,33 +173,24 @@ class DataPreprocessor(object):
         df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Age Group', fallback_value=df['Age Group'].value_counts().idxmax(), inplace=True
         )
-        young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education with 'High school' for young adults, and most common for others
         # TODO: Decrease dimensions
-        df.loc[young_adults_indices] = df.loc[young_adults_indices].groupby('ID', group_keys=False).apply(
-            self.fill_nan, col='Education', fallback_value='High School', inplace=True
-        )
-
-        df.loc[~young_adults_indices] = df.loc[~young_adults_indices].groupby('ID', group_keys=False).apply(
+        df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Education', fallback_value=df['Education'].value_counts().idxmax(), inplace=True
         )
 
         # Fill Son with 0 for young adults, and most common for others
-        df.loc[young_adults_indices] = df.loc[young_adults_indices].groupby('ID', group_keys=False).apply(
+        df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Son', fallback_value=0, inplace=True
         )
 
-        df.loc[~young_adults_indices] = df.loc[~young_adults_indices].groupby('ID', group_keys=False).apply(
-            self.fill_nan, col='Son', fallback_value=df['Son'].value_counts().idxmax(), inplace=True
-        )
-
         # Fill Drinker with most common
-        df.loc[young_adults_indices] = df.loc[young_adults_indices].groupby('ID', group_keys=False).apply(
+        df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Drinker', fallback_value='No', inplace=True
         )
 
-        df.loc[~young_adults_indices] = df.loc[~young_adults_indices].groupby('ID', group_keys=False).apply(
+        df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Drinker', fallback_value=df['Drinker'].value_counts().idxmax(), inplace=True
         )
 
