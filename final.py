@@ -160,13 +160,19 @@ class DataPreprocessor(object):
         # df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
 
         # Fill residence distance with mean value
-        df = df.groupby('ID', group_keys=False).apply(self.fill_nan, col='Residence Distance', fallback_value=df['Residence Distance'].mean(), inplace=True)
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Residence Distance', fallback_value=df['Residence Distance'].mean(), inplace=True
+        )
 
         # Fill service time with mean value
-        df = df.groupby('ID', group_keys=False).apply(self.fill_nan, col='Service time', fallback_value=df['Service time'].mean(), inplace=True)
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Service time', fallback_value=df['Service time'].mean(), inplace=True
+        )
 
         # Fill Age Group with most common
-        df = df.groupby('ID', group_keys=False).apply(self.fill_nan, col='Age Group', fallback_value=df['Age Group'].value_counts().idxmax(), inplace=True)
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Age Group', fallback_value=df['Age Group'].value_counts().idxmax(), inplace=True
+        )
         young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education with 'High school' for young adults, and most common for others
@@ -188,8 +194,19 @@ class DataPreprocessor(object):
             self.fill_nan, col='Son', fallback_value=df['Son'].value_counts().idxmax(), inplace=True
         )
 
+        # Fill Drinker with most common
+        df.loc[young_adults_indices] = df.loc[young_adults_indices].groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Drinker', fallback_value='No', inplace=True
+        )
+
+        df.loc[~young_adults_indices] = df.loc[~young_adults_indices].groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Drinker', fallback_value=df['Drinker'].value_counts().idxmax(), inplace=True
+        )
+
         # Fill Smoker with Yes
-        df['Smoker'].fillna('Yes', inplace=True)
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Smoker', fallback_value='Yes', inplace=True
+        )
 
         # Fill Pet with most common
         df = df.groupby('ID', group_keys=False).apply(self.fill_nan, col='Pet', fallback_value=df['Pet'].value_counts().idxmax(), inplace=True)
@@ -204,9 +221,6 @@ class DataPreprocessor(object):
             1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 4, 10: 4, 11: 4, 12: 2
         }
         df['Season'].fillna(df['Month'].map(month_to_season), inplace=True)
-
-        # Fill Drinker with most common
-        df['Drinker'].fillna(df['Drinker'].value_counts().idxmax(), inplace=True)
 
         return df
 
