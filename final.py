@@ -169,6 +169,7 @@ class DataPreprocessor(object):
         young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education with 'High school' for young adults, and most common for others
+        # TODO: Decrease dimensions
         df.loc[young_adults_indices].groupby('ID').apply(
             self.fill_nan, col='Education', fallback_value='High School', inplace=True
         )
@@ -178,8 +179,13 @@ class DataPreprocessor(object):
         )
 
         # Fill Son with 0 for young adults, and most common for others
-        df.loc[young_adults_indices, 'Son'].fillna(0, inplace=True)
-        df.loc[~young_adults_indices, 'Son'].fillna(df['Son'].value_counts().idxmax(), inplace=True)
+        df.loc[young_adults_indices].groupby('ID').apply(
+            self.fill_nan, col='Son', fallback_value=0, inplace=True
+        )
+
+        df.loc[~young_adults_indices].groupby('ID').apply(
+            self.fill_nan, col='Son', fallback_value=df['Son'].value_counts().idxmax(), inplace=True
+        )
 
         # Fill Smoker with Yes
         df['Smoker'].fillna('Yes', inplace=True)
