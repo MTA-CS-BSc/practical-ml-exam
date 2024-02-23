@@ -42,6 +42,7 @@
 
 
 import numpy as np
+from pandas.core.groupby import DataFrameGroupBy
 from sklearn.compose import ColumnTransformer
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -140,7 +141,7 @@ class DataPreprocessor(object):
         ctgs = ['High school', 'Graduate', 'Postgraduate', 'Phd']
         return self.ordinal_converter(df, col='Education', ctgs=ctgs)
 
-    def fill_nan(self, group, col: str, fallback_value: any, inplace: bool):
+    def fill_nan(self, group: DataFrameGroupBy, col: str, fallback_value: any, inplace: bool):
         non_null = group[col].notnull()
 
         if non_null.any():
@@ -228,6 +229,20 @@ class DataPreprocessor(object):
     def get_important_features(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.drop(columns=['ID'])
 
+    def convert_reason(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Certain infectious and parasitic diseases
+        # 1. Infectious Diseases and Immune System Disorders (Combining categories I, III)
+        # 2. Non-Communicable Diseases (Combining Categories II, IV, V, VI, VII, VIII, IX, X, XI, XII, XIII, XIV, XVII)
+        # 3. Maternal and Perinatal Health (Combining Categories XV and XVI):
+        # 4. Unspecified Health Issues (Combining Categories XVIII, XIX, XX, and XXI):
+
+        reason_to_ctg = {
+            1: 1, 3: 1, 2: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2, 10: 2, 11: 2, 12: 2, 13: 2, 14: 2, 17: 2,
+            15: 3, 16: 3, 18: 4, 19: 4, 20: 4, 21: 4, 0: 4, 22: 4, 23: 4, 24: 4, 25: 4, 26: 4, 27: 4 }
+
+        df['Reason_alt'] = df['Reason'].replace(df['Month'].map(reason_to_ctg))
+        return df
+
     def transform(self, df: pd.DataFrame):
         """
         Input:
@@ -260,6 +275,9 @@ class DataPreprocessor(object):
 
         # Convert education to ordinal
         c_df = self.convert_education_to_ordinal(c_df)
+
+        # Convert Reason according to the following mapping:
+        c_df = self.convert_reason(c_df)
 
         # Get important features
         c_df = self.get_important_features(c_df)
