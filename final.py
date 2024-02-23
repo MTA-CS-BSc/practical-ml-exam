@@ -144,7 +144,7 @@ class DataPreprocessor(object):
         non_null = group[col].notnull()
 
         if non_null.any():
-            group[col] = group[col].fillna(method='ffill', inplace=inplace)
+            group[col] = group[col].fillna(method='bfill', inplace=inplace)
         else:
             group[col] = group[col].fillna(fallback_value, inplace=inplace)
 
