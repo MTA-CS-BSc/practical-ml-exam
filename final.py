@@ -47,7 +47,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, LabelEncoder
 
 
@@ -225,6 +225,9 @@ class DataPreprocessor(object):
 
         return df
 
+    def get_important_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        return df.drop(columns=['ID'])
+
     def transform(self, df: pd.DataFrame):
         """
         Input:
@@ -258,6 +261,9 @@ class DataPreprocessor(object):
         # Convert education to ordinal
         c_df = self.convert_education_to_ordinal(c_df)
 
+        # Get important features
+        c_df = self.get_important_features(c_df)
+
         return c_df
 
 
@@ -275,7 +281,7 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
 
     """
-    model = RandomForestClassifier()
+    model = GridSearchCV(RandomForestClassifier(), param_grid={}, cv=8)
     model.fit(processed_x, y)
 
     return model
