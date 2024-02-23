@@ -169,8 +169,13 @@ class DataPreprocessor(object):
         young_adults_indices = df['Age Group'] == 'Young Adult'
 
         # Fill Education with 'High school' for young adults, and most common for others
-        df.loc[young_adults_indices, 'Education'].fillna('High school', inplace=True)
-        df.loc[~young_adults_indices, 'Education'].fillna(df['Education'].value_counts().idxmax(), inplace=True)
+        df.loc[young_adults_indices].groupby('ID').apply(
+            self.fill_nan, col='Education', fallback_value='High School', inplace=True
+        )
+
+        df.loc[~young_adults_indices].groupby('ID').apply(
+            self.fill_nan, col='Education', fallback_value=df['Education'].value_counts().idxmax(), inplace=True
+        )
 
         # Fill Son with 0 for young adults, and most common for others
         df.loc[young_adults_indices, 'Son'].fillna(0, inplace=True)
