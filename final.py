@@ -152,11 +152,11 @@ class DataPreprocessor(object):
 
     def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
         # Fill Height whereas Weight exists
-        df['Height'] = df.apply(lambda row: row['Weight'] + 100 if pd.notna(row['Weight']) else None, axis=1)
+        # df['Height'] = df.apply(lambda row: row['Weight'] + 100 if pd.notna(row['Weight']) else None, axis=1)
 
         # Fill left NaNs left in Weight & Height with mean
-        df['Height'].fillna(df['Height'].mean(), inplace=True)
-        df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
+        # df['Height'].fillna(df['Height'].mean(), inplace=True)
+        # df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
 
         # Fill residence distance with mean value
         df.groupby('ID').apply(self.fill_nan, col='Residence Distance', fallback_value=df['Residence Distance'].mean(), inplace=True)
@@ -180,7 +180,7 @@ class DataPreprocessor(object):
         df['Smoker'].fillna('Yes', inplace=True)
 
         # Fill Pet with most common
-        df['Pet'].fillna(df['Pet'].value_counts().idxmax(), inplace=True)
+        df.groupby('ID').apply(self.fill_nan, col='Pet', fallback_value=df['Pet'].value_counts().idxmax(), inplace=True)
 
         # Fill Season according to month (there are no NaN values in the Month column)
         # Summer - 1
@@ -220,7 +220,7 @@ class DataPreprocessor(object):
         c_df = self.fill_na(c_df)
 
         # Introduce new column to drop Weight and Height
-        c_df['BMI'] = c_df['Weight'] / pow(c_df['Height'], 2)
+        c_df['BMI'] = c_df['Weight'] / pow(c_df['Height'], 2) * 100
 
         # Convert Yes/No to True/False
         c_df = self.convert_textual_binary_to_boolean(c_df)
