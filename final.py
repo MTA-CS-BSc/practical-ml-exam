@@ -152,12 +152,20 @@ class DataPreprocessor(object):
         return group
 
     def fill_na(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Fill Height whereas Weight exists
-        # df['Height'] = df.apply(lambda row: row['Weight'] + 100 if pd.notna(row['Weight']) else None, axis=1)
+        # Fill height and weight
+        non_null_weight = df['Weight'].notna()
+        df['Height'].fillna(df['Weight'][non_null_weight] + 100, inplace=True)
 
-        # Fill left NaNs left in Weight & Height with mean
-        # df['Height'].fillna(df['Height'].mean(), inplace=True)
-        # df['Weight'] = df.apply(lambda row: row['Height'] + 100, axis=1)
+        non_null_height = df['Height'].notna()
+        df['Weight'].fillna(df['Height'][non_null_height] - 100, inplace=True)
+
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Height', fallback_value=df['Height'].mean(), inplace=True
+        )
+
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Weight', fallback_value=df['Weight'].mean(), inplace=True
+        )
 
         # Fill residence distance with mean value
         df = df.groupby('ID', group_keys=False).apply(
@@ -200,7 +208,9 @@ class DataPreprocessor(object):
         )
 
         # Fill Pet with most common
-        df = df.groupby('ID', group_keys=False).apply(self.fill_nan, col='Pet', fallback_value=df['Pet'].value_counts().idxmax(), inplace=True)
+        df = df.groupby('ID', group_keys=False).apply(
+            self.fill_nan, col='Pet', fallback_value=df['Pet'].value_counts().idxmax(), inplace=True
+        )
 
         # Fill Season according to month (there are no NaN values in the Month column)
         # Summer - 1
