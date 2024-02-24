@@ -221,20 +221,11 @@ class DataPreprocessor(object):
         return df
 
     def get_important_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.drop(columns=['ID', 'Height', 'Weight', 'Smoker', 'Drinker', 'Education', 'Age Group'])
+        return df.drop(columns=['ID', 'Height', 'Weight', 'Smoker', 'Drinker', 'Education', 'Age Group', 'Reason'])
 
     def convert_reason(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Certain infectious and parasitic diseases
-        # 1. Infectious Diseases and Immune System Disorders (Combining categories I, III)
-        # 2. Non-Communicable Diseases (Combining Categories II, IV, V, VI, VII, VIII, IX, X, XI, XII, XIII, XIV, XVII)
-        # 3. Maternal and Perinatal Health (Combining Categories XV and XVI):
-        # 4. Unspecified Health Issues (Combining Categories XVIII, XIX, XX, and XXI):
-
-        reason_to_ctg = {
-            1: 1, 3: 1, 2: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2, 10: 2, 11: 2, 12: 2, 13: 2, 14: 2, 17: 2,
-            15: 3, 16: 3, 18: 4, 19: 4, 20: 4, 21: 4, 0: 4, 22: 4, 23: 4, 24: 4, 25: 4, 26: 4, 27: 4 }
-
-        df['Reason_alt'] = df['Reason'].replace(df['Month'].map(reason_to_ctg))
+        one_hot_encoded = pd.get_dummies(df['Reason'], prefix='Reason')
+        df = pd.concat([df, one_hot_encoded], axis=1)
         return df
 
     def transform(self, df: pd.DataFrame):
