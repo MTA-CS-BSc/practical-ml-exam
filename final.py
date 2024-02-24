@@ -45,7 +45,7 @@ import numpy as np
 from pandas.core.groupby import DataFrameGroupBy
 from sklearn.compose import ColumnTransformer
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, GradientBoostingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -120,16 +120,11 @@ class DataPreprocessor(object):
         df['Bin_Smoker'] = l_encoder.transform(df['Smoker'])
         df['Bin_Drinker'] = l_encoder.transform(df['Drinker'])
 
-        # Drop original columns
-        df.drop(columns=['Smoker', 'Drinker'], inplace=True)
-
         return df
 
     def ordinal_converter(self, df: pd.DataFrame, col: str, ctgs: list[str]) -> pd.DataFrame:
         enc = OrdinalEncoder(categories=[ctgs], handle_unknown='use_encoded_value', unknown_value=np.nan)
         df[col.replace(' ', '_') + '_Numeric'] = enc.fit_transform(df[[col]])
-
-        df.drop(columns=col, inplace=True)
 
         return df
 
@@ -146,9 +141,8 @@ class DataPreprocessor(object):
 
         if non_null.any():
             group[col].fillna(method='bfill', inplace=inplace)
-            group[col].fillna(method='ffill', inplace=inplace)
-        else:
-            group[col].fillna(fallback_value, inplace=inplace)
+
+        group[col].fillna(fallback_value, inplace=inplace)
 
         return group
 
@@ -227,7 +221,7 @@ class DataPreprocessor(object):
         return df
 
     def get_important_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.drop(columns=['ID'])
+        return df.drop(columns=['ID', 'Smoker', 'Drinker', 'Education', 'Age Group'])
 
     def convert_reason(self, df: pd.DataFrame) -> pd.DataFrame:
         # Certain infectious and parasitic diseases
@@ -299,7 +293,7 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
 
     """
-    model = GridSearchCV(RandomForestClassifier(), param_grid={}, cv=8)
+    model = GridSearchCV(GradientBoostingClassifier(), param_grid={}, cv=5)
     model.fit(processed_x, y)
 
     return model
@@ -309,7 +303,7 @@ def split_data(processed_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, 
     x = processed_df.drop(["TimeOff"], axis=1)
 
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.15, random_state=1, stratify=y
+        x, y, test_size=0.10, random_state=1, stratify=y
     )
 
     # This splits the data into a train set, which will be used to calibrate the internal parameters of predictor, and the test set, which will be used for checking
