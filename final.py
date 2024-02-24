@@ -261,7 +261,7 @@ class DataPreprocessor(object):
         # Convert education to ordinal
         c_df = self.convert_education_to_ordinal(c_df)
 
-        # Convert Reason according to the following mapping:
+        # Convert Reason using one hot
         c_df = self.convert_reason(c_df)
 
         # Get important features
