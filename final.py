@@ -284,7 +284,12 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
 
     """
-    model = GridSearchCV(RandomForestClassifier(), param_grid={}, cv=5)
+    param_grid = {
+        'n_estimators': np.arange(10, 100, 10),
+        'max_depth': [8, 10],
+    }
+
+    model = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, verbose=3, cv=5)
     model.fit(processed_x, y)
 
     return model
