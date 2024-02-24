@@ -294,7 +294,7 @@ def split_data(processed_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, 
     x = processed_df.drop(["TimeOff"], axis=1)
 
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.15, random_state=1, stratify=y
+        x, y, test_size=0.2, random_state=1, stratify=y
     )
 
     # This splits the data into a train set, which will be used to calibrate the internal parameters of predictor, and the test set, which will be used for checking
