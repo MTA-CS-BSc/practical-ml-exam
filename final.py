@@ -224,8 +224,15 @@ class DataPreprocessor(object):
         return df.drop(columns=['ID', 'Height', 'Weight', 'Smoker', 'Drinker', 'Education', 'Age Group', 'Reason'])
 
     def convert_reason(self, df: pd.DataFrame) -> pd.DataFrame:
-        one_hot_encoded = pd.get_dummies(df['Reason'], prefix='Reason')
-        df = pd.concat([df, one_hot_encoded], axis=1)
+        filled_reason = pd.get_dummies(df['Reason'], prefix='Reason')
+
+        for i in range(0, 29):
+            if f'Reason_{i}' not in filled_reason:
+                filled_reason[f'Reason_{i}'] = False
+
+        filled_reason = filled_reason[[f'Reason_{i}' for i in range(0, 29)]]
+        df = pd.concat([df, filled_reason], axis=1)
+
         return df
 
     def transform(self, df: pd.DataFrame):
@@ -345,7 +352,7 @@ def main():
     train_dataset_df = load_dataset(train_csv_path)
     x_train, x_test, y_train, y_test = split_data(train_dataset_df)
 
-    preprocessor.fit(train_dataset_df)
+    preprocessor.fit(x_train)
     processed_x_train = preprocessor.transform(x_train)
     processed_x_test = preprocessor.transform(x_test)
 
