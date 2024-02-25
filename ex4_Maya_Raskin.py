@@ -214,32 +214,11 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
 
     """
-    param_grid = {
-        'n_estimators': np.arange(10, 100, 10),
-        'max_depth': [8, 10],
-    }
 
-    model = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, verbose=3, cv=5)
+    model = RandomForestClassifier(n_estimators=70, max_depth=10)
     model.fit(processed_x, y)
 
     return model
-
-def split_data(processed_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    y = processed_df["TimeOff"]
-    x = processed_df.drop(["TimeOff"], axis=1)
-
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.2, random_state=1, stratify=y
-    )
-
-    # This splits the data into a train set, which will be used to calibrate the internal parameters of predictor, and the test set, which will be used for checking
-    print("Shapes of X_train, Y_train, X_test and Y_test:")
-    print(x_train.shape)
-    print(y_train.shape)
-    print(x_test.shape)
-    print(y_test.shape)
-
-    return x_train, x_test, y_train, y_test
 
 def MAMA_main():
     preprocessor = DataPreprocessor()
@@ -268,6 +247,46 @@ def MAMA_main():
     predictions = model.predict(preprocessor.transform(X_train))
     train_score = accuracy_score(y_train, predictions)
     print('Accuracy on train:', train_score)
+
+
+def split_data(processed_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    y = processed_df["TimeOff"]
+    x = processed_df.drop(["TimeOff"], axis=1)
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=1, stratify=y
+    )
+
+    # This splits the data into a train set, which will be used to calibrate the internal parameters of predictor, and the test set, which will be used for checking
+    print("Shapes of X_train, Y_train, X_test and Y_test:")
+    print(x_train.shape)
+    print(y_train.shape)
+    print(x_test.shape)
+    print(y_test.shape)
+
+    return x_train, x_test, y_train, y_test
+
+
+def Test_main():
+    preprocessor = DataPreprocessor()
+    train_csv_path = 'time_off_data_train.csv'
+    train_dataset_df = load_dataset(train_csv_path)
+    x_train, x_test, y_train, y_test = split_data(train_dataset_df)
+
+    preprocessor.fit(x_train)
+    processed_x_train = preprocessor.transform(x_train)
+    processed_x_test = preprocessor.transform(x_test)
+
+    model = train_model(processed_x_train, y_train)
+
+    predictions = model.predict(processed_x_test)
+    test_score = accuracy_score(y_test, predictions)
+    print("Accuracy on test:", test_score)
+
+    predictions = model.predict(processed_x_train)
+    train_score = accuracy_score(y_train, predictions)
+    print('Accuracy on train:', train_score)
+
 
 if __name__ == '__main__':
     MAMA_main()
