@@ -282,10 +282,10 @@ def MAMA_main():
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
 
-    x_train = train_dataset_df.iloc[:, :-1]
+    X_train = train_dataset_df.iloc[:, :-1]
     y_train = train_dataset_df['TimeOff']
-    preprocessor.fit(x_train)
-    model = train_model(preprocessor.transform(x_train), y_train)
+    preprocessor.fit(X_train)
+    model = train_model(preprocessor.transform(X_train), y_train)
 
     ### Evaluation Section ####
     test_csv_path = 'time_off_data_train.csv'
@@ -293,19 +293,19 @@ def MAMA_main():
     test_csv_path = train_csv_path
     test_dataset_df = load_dataset(test_csv_path)
 
-    x_test = test_dataset_df.iloc[:, :-1]
+    X_test = test_dataset_df.iloc[:, :-1]
     y_test = test_dataset_df['TimeOff']
 
-    processed_x_test = preprocessor.transform(x_test)
-    predictions = model.predict(processed_x_test)
+    processed_X_test = preprocessor.transform(X_test)
+    predictions = model.predict(processed_X_test)
     test_score = accuracy_score(y_test, predictions)
     print("Accuracy on test:", test_score)
 
-    predictions = model.predict(preprocessor.transform(x_train))
+    predictions = model.predict(preprocessor.transform(X_train))
     train_score = accuracy_score(y_train, predictions)
     print('Accuracy on train:', train_score)
 
-def main():
+def Test_main():
     preprocessor = DataPreprocessor()
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
@@ -326,4 +326,4 @@ def main():
     print('Accuracy on train:', train_score)
 
 if __name__ == '__main__':
-    main()
+    MAMA_main()
