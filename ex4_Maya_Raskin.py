@@ -13,7 +13,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder, StandardScaler
 
 
 def load_dataset(train_csv_path: str):
@@ -118,8 +118,10 @@ class DataPreprocessor(object):
         non_null_height = df['Height'].notna()
         df['Weight'].fillna(df['Height'][non_null_height] - 100, inplace=True)
 
-        mean_fallback = ['Height', 'Weight', 'Residence Distance', 'Service time', 'Transportation expense' ]
-        most_frequent_fallback = ['Age Group', 'Education', 'Drinker', 'Pet', 'Son']
+        mean_fallback = ['Height', 'Weight', 'Residence Distance',
+                         'Service time', 'Transportation expense']
+        most_frequent_fallback = ['Age Group', 'Education',
+                                  'Drinker', 'Pet', 'Son']
 
         for col in mean_fallback + most_frequent_fallback:
             df = df.groupby('ID', group_keys=False).apply(
@@ -130,12 +132,12 @@ class DataPreprocessor(object):
         df = df.groupby('ID', group_keys=False).apply(
             self.fill_nan, col='Smoker', fallback_value='Yes', inplace=True
         )
+
         # Fill Season according to month (there are no NaN values in the Month column)
         # Summer - 1
         # Winter - 2
         # Spring - 3
         # Fall - 4
-
         month_to_season = {
             1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1, 8: 1, 9: 4, 10: 4, 11: 4, 12: 2
         }
@@ -197,7 +199,7 @@ class DataPreprocessor(object):
         # Get important features
         c_df = self.get_important_features(c_df)
 
-        return c_df
+        return StandardScaler().fit_transform(c_df)
 
 
 def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
@@ -215,7 +217,12 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
     """
 
-    model = RandomForestClassifier(n_estimators=70, max_depth=10)
+    param_grid = {
+        'n_estimators': np.arange(60, 180, 20),
+        'max_depth': [8, 10]
+    }
+
+    model = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, cv=5)
     model.fit(processed_x, y)
 
     return model
@@ -289,4 +296,4 @@ def Test_main():
 
 
 if __name__ == '__main__':
-    MAMA_main()
+    Test_main()
