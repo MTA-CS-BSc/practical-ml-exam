@@ -7,49 +7,13 @@
 # First and Last Names: Maya Raskin
 ################################
 
-# In this exercise you should implement a classification pipeline which aims at predicting the amount of hours
-# a worker will be absent from work based on the worker characteristics and the work day missed.
-# Download the dataset from the course website, which is provided as a .csv file. The target label is 'TimeOff'.
-# You are free to use any library functions from numpy, pandas and sklearn, etc...
-#
-# You should implement the body of the functions below. The main two points of entry to your code are DataPreprocessor class and
-# the train_model function. In the '__main__' section you are provided with an example of how your submission will be evaluated. 
-# You are free to change the body of the functions and classes as you like - as long as it adheres to the provided input & output structure.
-# In all methods and functions the input structure and the required returned variables are explicitly stated.
-# Note that in order to evaluate the generalization error, you'll need to run cross validation as we demonstrated in class,
-# However!!! In the final submission your file needs to contain only the methods of DataPreprocessor and the train_model function.
-# Tip: You are encouraged to run gridsearch to find the best model and hyperparameters as demonstrated in class.
-#
-# To make things clear: you need to experiment with the preprocessing stage and the final model that will be used to fit. To get the
-# sense of how your model performs, you'll need to apply the CV approach and, quite possibly, do a grid search of the meta parameters. 
-# In the end, when you think that you've achieved your best, you should make a clean - and runnable!!! - version of your insights,
-# which must adhere to the api provided below. In the evaluation stage, your code will be run on the entire train data,
-# and then run once on the test data.
-#
-# You are expected to get results between 50% and 100% accuracy on the test set.
-# Of course, the test set is not provided to you. However, as previously mentioned, running cross validation
-# (with enough folds) will give you a good estimation of the accuracy.
-#
-# Important: obtaining accuracy less than 60%, will grant you 65 points for this exercise.
-# Obtaining accuracy score above 60% will grant you 75 points minimum, however, your final score
-# will be according to the distribution of all submissions. Therefore, due to the competition nature of this exercise, 
-# you may use any method or library that will grant you the highest score, even if not learned in class.
-#
-# Identical or equivalent submissions will give rise to a suspicion of plagiarism.
-#
-# In addition to stating your names and ID numbers in the body of this file, name the file as follows:
-# ex4_FirstName_LastName.py
-
-
 import numpy as np
 from pandas.core.groupby import DataFrameGroupBy
-from sklearn.compose import ColumnTransformer
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier, GradientBoostingClassifier
-from sklearn.impute import SimpleImputer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, LabelEncoder
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
 
 
 def load_dataset(train_csv_path: str):
@@ -80,7 +44,7 @@ class DataPreprocessor(object):
     """
 
     def __init__(self):
-        self.transformer = None
+        pass
 
     def display_top_10_rows(self, df: pd.DataFrame) -> None:
         print('Top 10 rows:')
@@ -302,26 +266,6 @@ def MAMA_main():
     print("Accuracy on test:", test_score)
 
     predictions = model.predict(preprocessor.transform(X_train))
-    train_score = accuracy_score(y_train, predictions)
-    print('Accuracy on train:', train_score)
-
-def Test_main():
-    preprocessor = DataPreprocessor()
-    train_csv_path = 'time_off_data_train.csv'
-    train_dataset_df = load_dataset(train_csv_path)
-    x_train, x_test, y_train, y_test = split_data(train_dataset_df)
-
-    preprocessor.fit(x_train)
-    processed_x_train = preprocessor.transform(x_train)
-    processed_x_test = preprocessor.transform(x_test)
-
-    model = train_model(processed_x_train, y_train)
-
-    predictions = model.predict(processed_x_test)
-    test_score = accuracy_score(y_test, predictions)
-    print("Accuracy on test:", test_score)
-
-    predictions = model.predict(processed_x_train)
     train_score = accuracy_score(y_train, predictions)
     print('Accuracy on train:', train_score)
 
