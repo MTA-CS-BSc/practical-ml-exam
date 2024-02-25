@@ -75,6 +75,9 @@ class DataPreprocessor(object):
         self.display_top_10_rows(dataset_df)
         self.where_are_the_nans(dataset_df)
 
+        self.mean_values = dataset_df.select_dtypes(include='number').mean()
+        self.most_common_values = {k: dataset_df[k].value_counts().idxmax() for k in dataset_df.select_dtypes(include=['number', 'object'])}
+
     def convert_textual_binary_to_boolean(self, df: pd.DataFrame) -> pd.DataFrame:
         # Prepare encoder
         l_encoder = LabelEncoder()
@@ -125,7 +128,7 @@ class DataPreprocessor(object):
 
         for col in mean_fallback + most_frequent_fallback:
             df = df.groupby('ID', group_keys=False).apply(
-                self.fill_nan, col=col, fallback_value=df[col].mean() if col in mean_fallback else df[col].value_counts().idxmax(), inplace=True
+                self.fill_nan, col=col, fallback_value=self.mean_values[col] if col in mean_fallback else self.most_common_values[col], inplace=True
             )
 
         # Fill Smoker with Yes
@@ -217,12 +220,7 @@ def train_model(processed_x: pd.DataFrame, y: pd.DataFrame):
 
     """
 
-    param_grid = {
-        'n_estimators': np.arange(60, 180, 20),
-        'max_depth': [8, 10]
-    }
-
-    model = GridSearchCV(RandomForestClassifier(), param_grid=param_grid, cv=5)
+    model = RandomForestClassifier(n_estimators=70, max_depth=10)
     model.fit(processed_x, y)
 
     return model
