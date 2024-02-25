@@ -343,18 +343,19 @@ def main():
     preprocessor = DataPreprocessor()
     train_csv_path = 'time_off_data_train.csv'
     train_dataset_df = load_dataset(train_csv_path)
+    x_train, x_test, y_train, y_test = split_data(train_dataset_df)
 
-    processed_def = preprocessor.transform(train_dataset_df)
-    x_train, x_test, y_train, y_test = split_data(processed_def)
+    preprocessor.fit(train_dataset_df)
+    processed_x_train = preprocessor.transform(x_train)
+    processed_x_test = preprocessor.transform(x_test)
 
-    preprocessor.fit(x_train)
-    model = train_model(x_train, y_train)
+    model = train_model(processed_x_train, y_train)
 
-    predictions = model.predict(x_test)
+    predictions = model.predict(processed_x_test)
     test_score = accuracy_score(y_test, predictions)
     print("Accuracy on test:", test_score)
 
-    predictions = model.predict(x_train)
+    predictions = model.predict(processed_x_train)
     train_score = accuracy_score(y_train, predictions)
     print('Accuracy on train:', train_score)
 
